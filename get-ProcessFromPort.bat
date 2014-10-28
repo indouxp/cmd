@@ -36,7 +36,6 @@ echo @echo off > %TASKLIST%
 for /F "tokens=1,2,3,4,5 usebackq" %%i in (%FINDSTR%) do (
   echo tasklist /FO TABLE /FI "PID eq %%m" >> %TASKLIST%
 )
-if %errorlevel% neq 0 (echo for fail. & goto ERROR)
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: tasklistコマンドの実行
