@@ -6,6 +6,7 @@
 :: > %0 61100
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 set DIR=%~dp0
+set FILE=%~nx0
 set NAME=%~n0
 set NETSTAT=%DIR%%NAME%.netstat.txt
 set FINDSTR=%DIR%%NAME%.findstr.txt
@@ -28,13 +29,18 @@ if %errorlevel% neq 0 (echo netstat fail. & goto ERROR)
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 findstr /r ":%PORT%" %NETSTAT% > %FINDSTR%
 if %errorlevel% neq 0 (echo findstr %PORT% fail. &  goto ERROR)
+echo netstat -aon ^| findstr /r ":%PORT%"
+echo アクティブな接続
+echo   プロトコル  ローカル アドレス          外部アドレス        状態           PID
 type %FINDSTR%
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: tasklistコマンドの作成
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 echo @echo off > %TASKLIST%
+if %errorlevel% neq 0 (echo %TASKLIST% fail. &  goto ERROR)
 :usebackqは、パス名に空白を含む場合の対応
+:: i:プロトコル j:ローカルアドレス k:外部アドレス l:状態 m:PID
 for /F "tokens=1,2,3,4,5 usebackq" %%i in (%FINDSTR%) do (
   echo tasklist /FO TABLE /FI "PID eq %%m" >> %TASKLIST%
 )
@@ -42,6 +48,8 @@ for /F "tokens=1,2,3,4,5 usebackq" %%i in (%FINDSTR%) do (
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: tasklistコマンドの実行
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+echo:
+findstr "tasklist" %TASKLIST%
 %comspec% /c %TASKLIST%
 if %errorlevel% neq 0 (echo %TASKLIST% fail. & goto ERROR)
 
@@ -53,7 +61,9 @@ if %errorlevel% neq 0 (echo %TASKLIST% fail. & goto ERROR)
 :del %TASKLIST%
 
 echo:
-echo create %NETSTAT% %FINDSTR% %TASKLIST%.
+echo %FILE% create %NETSTAT%.
+echo %FILE% create %FINDSTR%.
+echo %FILE% create %TASKLIST%.
 echo:
 goto NORMAL
 
@@ -61,13 +71,13 @@ goto NORMAL
 :: エラー終了
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :ERROR
-echo %YMD%-%HMS%:%NAME% fail.
+echo %YMD%-%HMS%:%FILE% fail.
 exit /b 1
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: 正常終了
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :NORMAL
-echo %YMD%-%HMS%:%NAME% done.
+echo %YMD%-%HMS%:%FILE% done.
 exit /b 0
 
